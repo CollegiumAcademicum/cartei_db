@@ -4,7 +4,7 @@ from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import DateTime, Integer, String, event
+from sqlalchemy import DateTime, Index, Integer, String, event
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -24,6 +24,9 @@ class Base(DeclarativeBase):
 
 class EntityHistory(Base):
     __tablename__ = "entity_history"
+    __table_args__ = (
+        Index("ix_entity_history_type_id", "entity_type", "entity_id"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     entity_type: Mapped[str] = mapped_column(String, nullable=False, index=True)
