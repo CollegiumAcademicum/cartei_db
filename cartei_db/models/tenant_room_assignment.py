@@ -1,6 +1,6 @@
 from datetime import date
 from typing import Optional
-from sqlalchemy import Date, ForeignKey, Integer
+from sqlalchemy import Boolean, Date, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 from cartei_db.base import Base
 
@@ -13,3 +13,5 @@ class TenantRoomAssignment(Base):
     room_id: Mapped[int] = mapped_column(ForeignKey("room.id"), nullable=False)
     moved_in: Mapped[date] = mapped_column(Date, nullable=False)
     moved_out: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    key_handed_over: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    deposit_iban: Mapped[Optional[str]] = mapped_column(String, nullable=True)

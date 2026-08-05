@@ -19,9 +19,14 @@ class Tenant(Historized, Base):
     email: Mapped[str] = mapped_column(String, nullable=False)
     intranet_username: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     intranet_uuid: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False, unique=True)
+    preferred_name: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    pronouns: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    date_of_birth: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    phone: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     is_flinta: Mapped[bool] = mapped_column(Boolean, nullable=False)
     study_subject: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     apprenticeship_field: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    educational_institution: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     barrier_free_needed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     mailbox_key: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     mailbox_list_opt_in: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
@@ -34,6 +39,8 @@ class Tenant(Historized, Base):
     sublet_of_tenant_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("tenant.id"), nullable=True
     )
+    data_priv_signed_at: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    photo_allowance_signed_at: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     move_in: Mapped[date] = mapped_column(Date, nullable=False)
     move_out: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     comments: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
