@@ -55,7 +55,6 @@ LDAP_CA_CERT_PATH=/app/certs/ca.pem
 CARTEI_ADMIN_GROUP=cn=ag.it,cn=groups,cn=accounts,dc=intranet,dc=ca-hd,dc=de
 CARTEI_CLUSTER_GROUP=cn=gr.cluster,cn=groups,cn=accounts,dc=intranet,dc=ca-hd,dc=de
 LDAP_REQUIRE_GROUP=cn=confidentiality_clearance,cn=groups,cn=accounts,dc=intranet,dc=ca-hd,dc=de
-LDAP_RESIDENTS_GROUP=cn=CHANGE_ME,cn=groups,cn=accounts,dc=intranet,dc=ca-hd,dc=de
 ```
 
 ---
@@ -136,14 +135,17 @@ An `AGAbfrage` has three states derived from today's date vs its fields:
 
 ## 7. LDAP Tenant Sync
 
-`POST /admin/sync-from-ldap/` — admin-only view that:
-1. Queries LDAP for all members of `LDAP_RESIDENTS_GROUP`
-2. For each member: creates a `Tenant` record if none exists with that `intranet_username`, or updates the LDAP-sourced fields if the record exists
-3. LDAP-sourced fields (always synced): `first_name`, `last_name`, `email`, `intranet_uuid`
-4. Manually managed fields (never touched by sync): `preferred_name`, `pronouns`, `date_of_birth`, `phone`, `educational_institution`, `is_flinta`, `barrier_free_needed`, `soli_miete_wunsch`, `move_in`, and all others
-4. Returns a summary: N created, M updated
+`LDAP_REQUIRE_GROUP` (`confidentiality_clearance`) defines exactly who has access to CArtei — and therefore who should have a `Tenant` record. No separate residents group needed.
 
-This solves the bootstrap problem until a full move-in workflow exists.
+Two mechanisms:
+
+**Auto-create on first login:** `CustomLDAPBackend.authenticate()` creates a minimal `Tenant` record (LDAP-sourced fields only) if none exists for the logging-in user. Zero admin action needed for individuals.
+
+**Bulk sync endpoint** `POST /admin/sync-from-ldap/` — admin-only, queries all members of `LDAP_REQUIRE_GROUP` and creates/updates Tenant records in bulk. Useful for bootstrapping before anyone has logged in. Returns a summary: N created, M updated.
+
+LDAP-sourced fields (always synced): `first_name`, `last_name`, `email`, `intranet_uuid`
+
+Manually managed fields (never touched by sync): `preferred_name`, `pronouns`, `date_of_birth`, `phone`, `educational_institution`, `is_flinta`, `barrier_free_needed`, `soli_miete_wunsch`, `move_in`, and all others.
 
 ---
 
