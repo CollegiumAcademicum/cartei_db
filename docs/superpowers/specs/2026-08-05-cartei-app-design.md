@@ -51,9 +51,9 @@ LDAP_BIND_DN=uid=service_cartei,cn=users,cn=accounts,dc=intranet,dc=ca-hd,dc=de
 LDAP_BIND_PASSWORD=CHANGE_ME
 LDAP_USER_SEARCH_BASE=cn=users,cn=accounts,dc=intranet,dc=ca-hd,dc=de
 LDAP_CA_CERT_PATH=/app/certs/ca.pem
-CARTEI_ADMIN_GROUP=ag.it          # change to dedicated group when created
-CARTEI_CLUSTER_GROUP=gr.cluster
-LDAP_RESIDENTS_GROUP=cn=ca-bewohner,cn=groups,cn=accounts,dc=intranet,dc=ca-hd,dc=de
+CARTEI_ADMIN_GROUP=cn=ag.it,cn=groups,cn=accounts,dc=intranet,dc=ca-hd,dc=de
+CARTEI_CLUSTER_GROUP=cn=gr.cluster,cn=groups,cn=accounts,dc=intranet,dc=ca-hd,dc=de
+LDAP_RESIDENTS_GROUP=cn=CHANGE_ME,cn=groups,cn=accounts,dc=intranet,dc=ca-hd,dc=de
 ```
 
 ---
@@ -66,7 +66,7 @@ LDAP group memberships are synced to Django groups on every login by `CustomLDAP
 |---|---|---|
 | `$CARTEI_ADMIN_GROUP` (default: `ag.it`) | `admins` | Full access to everything |
 | `$CARTEI_CLUSTER_GROUP` (`gr.cluster`) | `cluster` | All AG results, internal notes, unrestricted edit of evaluations |
-| `ag.kueche`, `ag.garten`, … | `ag.kueche`, … | Enter/edit evaluations for their own AG during open period or grace period |
+| `ag.kueche`, `ag.garten`, … (CN parsed from full DN) | `ag.kueche`, … | Enter/edit evaluations for their own AG during open period or grace period |
 | Any authenticated CA resident | — | Own profile read/edit, enrollment proof upload |
 
 **Note:** `CARTEI_ADMIN_GROUP` defaults to `ag.it` for the initial launch. When CA creates a dedicated admin LDAP group, update the env var — no code change needed.
@@ -113,7 +113,7 @@ An `AGAbfrage` has three states derived from today's date vs its fields:
 
 1. `admins` or `cluster` creates an `AGAbfrage` (date, label, `ends_at`, `grace_ends_at`)
 2. AG members log in and see the current open Abfrage
-3. For each member of their AG (fetched from LDAP group members): set `AGStatus` + optional note
+3. For each member of their AG (fetched from LDAP group members by CN, e.g. `ag.kueche`): set `AGStatus` + optional note. `AGAbfrageResult.ag_name` stores the short CN (e.g. `ag.kueche`), not the full DN.
 4. Last save wins — no explicit "submit" step; the Abfrage closing date is the deadline
 5. `cluster` reviews results: per-AG view and per-tenant view
 6. `cluster` can add `ClusterNote` per tenant per round (internal, not shown to AGs)
