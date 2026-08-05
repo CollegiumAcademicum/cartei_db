@@ -39,6 +39,7 @@ The app is deployed as `ghcr.io/collegiumacademicum/cartei:latest` and reference
 Copied and adapted from `mattermost_bots/webui/broadcast/auth.py` and `webui/settings.py`.
 
 - **Backend:** `CustomLDAPBackend(LDAPBackend)` — binds with user credentials, then syncs Django groups from LDAP `memberOf` attributes on every successful login.
+- **Login restriction:** `AUTH_LDAP_REQUIRE_GROUP` set to the `confidentiality_clearance` group DN — django-auth-ldap rejects anyone not in that group before a session is created. No custom code needed.
 - **Session-based auth** — standard Django sessions, cookie-based. Works seamlessly for the browser UI.
 - **FreeIPA specifics:** `OPT_REFERRALS=0`, TLS with CA cert via `LDAP_CA_CERT_PATH`.
 - **Service account:** `LDAP_BIND_DN` / `LDAP_BIND_PASSWORD` env vars for group lookups.
@@ -53,6 +54,7 @@ LDAP_USER_SEARCH_BASE=cn=users,cn=accounts,dc=intranet,dc=ca-hd,dc=de
 LDAP_CA_CERT_PATH=/app/certs/ca.pem
 CARTEI_ADMIN_GROUP=cn=ag.it,cn=groups,cn=accounts,dc=intranet,dc=ca-hd,dc=de
 CARTEI_CLUSTER_GROUP=cn=gr.cluster,cn=groups,cn=accounts,dc=intranet,dc=ca-hd,dc=de
+LDAP_REQUIRE_GROUP=cn=confidentiality_clearance,cn=groups,cn=accounts,dc=intranet,dc=ca-hd,dc=de
 LDAP_RESIDENTS_GROUP=cn=CHANGE_ME,cn=groups,cn=accounts,dc=intranet,dc=ca-hd,dc=de
 ```
 
