@@ -23,7 +23,7 @@ class Tenant(Historized, Base):
     pronouns: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     date_of_birth: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     phone: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    is_flinta: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    is_flinta: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
     study_subject: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     apprenticeship_field: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     educational_institution: Mapped[Optional[str]] = mapped_column(String, nullable=True)
@@ -41,7 +41,7 @@ class Tenant(Historized, Base):
     )
     data_priv_signed_at: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     photo_allowance_signed_at: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
-    move_in: Mapped[date] = mapped_column(Date, nullable=False)
+    move_in: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     move_out: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     comments: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 

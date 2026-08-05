@@ -1,9 +1,10 @@
 import uuid
-from datetime import date
+from datetime import date, datetime, timezone
 from decimal import Decimal
 import pytest
 from cartei_db.models.ag_abfrage import AGAbfrage
 from cartei_db.models.ag_abfrage_result import AGAbfrageResult
+from cartei_db.models.cluster_note import ClusterNote
 from cartei_db.models.tenant import Tenant
 from cartei_db.base import EntityHistory
 from cartei_db.enums import AGStatus
@@ -23,31 +24,49 @@ def tenant(session):
     return t
 
 
-def test_create_abfrage(session):
-    a = AGAbfrage(date=date(2024, 3, 1), label="Abfrage 2024-1")
+@pytest.fixture
+def abfrage(session):
+    a = AGAbfrage(
+        date=date(2024, 3, 1),
+        label="Abfrage 2024-1",
+        ends_at=date(2024, 3, 31),
+        grace_ends_at=date(2024, 4, 7),
+    )
     session.add(a)
     session.flush()
-    assert a.id is not None
+    return a
 
 
-def test_create_result(session, tenant):
-    abfrage = AGAbfrage(date=date(2024, 3, 1))
-    session.add(abfrage)
-    session.flush()
+def test_create_abfrage(session, abfrage):
+    assert abfrage.id is not None
+    assert abfrage.ends_at == date(2024, 3, 31)
+    assert abfrage.grace_ends_at == date(2024, 4, 7)
+
+
+def test_create_result(session, tenant, abfrage):
     result = AGAbfrageResult(
-        abfrage_id=abfrage.id, ag_name="AG Küche",
+        abfrage_id=abfrage.id, ag_name="ag.kueche",
         tenant_id=tenant.id, status=AGStatus.ACTIVE,
     )
     session.add(result)
     session.flush()
     assert result.id is not None
+    assert result.note is None
 
 
-def test_multiple_ags_per_tenant_per_round(session, tenant):
-    abfrage = AGAbfrage(date=date(2024, 3, 1))
-    session.add(abfrage)
+def test_result_with_note(session, tenant, abfrage):
+    result = AGAbfrageResult(
+        abfrage_id=abfrage.id, ag_name="ag.kueche",
+        tenant_id=tenant.id, status=AGStatus.ACTIVE,
+        note="Very engaged this round",
+    )
+    session.add(result)
     session.flush()
-    for ag in ["AG Küche", "AG Garten"]:
+    assert result.note == "Very engaged this round"
+
+
+def test_multiple_ags_per_tenant_per_round(session, tenant, abfrage):
+    for ag in ["ag.kueche", "ag.garten"]:
         session.add(AGAbfrageResult(
             abfrage_id=abfrage.id, ag_name=ag,
             tenant_id=tenant.id, status=AGStatus.ACTIVE,
@@ -59,12 +78,9 @@ def test_multiple_ags_per_tenant_per_round(session, tenant):
     assert len(results) == 2
 
 
-def test_result_status_update_writes_history(session, tenant):
-    abfrage = AGAbfrage(date=date(2024, 6, 1))
-    session.add(abfrage)
-    session.flush()
+def test_result_status_update_writes_history(session, tenant, abfrage):
     result = AGAbfrageResult(
-        abfrage_id=abfrage.id, ag_name="AG Küche",
+        abfrage_id=abfrage.id, ag_name="ag.kueche",
         tenant_id=tenant.id, status=AGStatus.ACTIVE,
     )
     session.add(result)
@@ -75,3 +91,30 @@ def test_result_status_update_writes_history(session, tenant):
         entity_type="ag_abfrage_result", entity_id=result.id
     ).one()
     assert history.snapshot["status"] == "ACTIVE"
+
+
+def test_create_cluster_note(session, tenant, abfrage):
+    note = ClusterNote(
+        tenant_id=tenant.id,
+        abfrage_id=abfrage.id,
+        note="Internal observation",
+        created_at=datetime(2024, 3, 15, 10, 0, 0, tzinfo=timezone.utc),
+        created_by="clusteruser",
+    )
+    session.add(note)
+    session.flush()
+    assert note.id is not None
+
+
+def test_tenant_move_in_nullable(session):
+    t = Tenant(
+        first_name="New", last_name="Person", email="np@example.com",
+        intranet_username="newperson", intranet_uuid=uuid.uuid4(),
+        is_flinta=False, barrier_free_needed=False, mailbox_key=False,
+        mailbox_list_opt_in=False, soli_miete_wunsch=Decimal("0"),
+        is_sublet=False,
+    )
+    session.add(t)
+    session.flush()
+    assert t.id is not None
+    assert t.move_in is None

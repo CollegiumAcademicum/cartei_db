@@ -11,3 +11,5 @@ class AGAbfrage(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     date: Mapped[date] = mapped_column(Date, nullable=False)
     label: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    ends_at: Mapped[date] = mapped_column(Date, nullable=False)
+    grace_ends_at: Mapped[date] = mapped_column(Date, nullable=False)
