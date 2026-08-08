@@ -2,10 +2,11 @@ from enum import Enum
 
 
 class AGStatus(Enum):
-    ACTIVE = "ACTIVE"
-    NOT_ACTIVE_ENOUGH = "NOT_ACTIVE_ENOUGH"
-    CONTACTED = "CONTACTED"
-    INACTIVE = "INACTIVE"
+    ZU_AKTIV = "ZU_AKTIV"
+    AKTIV = "AKTIV"
+    NICHT_AUSREICHEND = "NICHT_AUSREICHEND"
+    IM_GESPRAECH = "IM_GESPRAECH"
+    INAKTIV = "INAKTIV"
 
 
 class ChangeSource(Enum):
