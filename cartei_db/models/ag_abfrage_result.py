@@ -1,5 +1,5 @@
 from typing import Optional
-from sqlalchemy import Enum as SAEnum, ForeignKey, Integer, String, Text
+from sqlalchemy import Enum as SAEnum, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from cartei_db.base import Base, Historized
 from cartei_db.enums import AGStatus
@@ -7,6 +7,7 @@ from cartei_db.enums import AGStatus
 
 class AGAbfrageResult(Historized, Base):
     __tablename__ = "ag_abfrage_result"
+    __table_args__ = (UniqueConstraint("abfrage_id", "ag_name", "tenant_id", name="uq_ag_abfrage_result"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     abfrage_id: Mapped[int] = mapped_column(ForeignKey("ag_abfrage.id"), nullable=False)
