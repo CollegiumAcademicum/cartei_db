@@ -64,7 +64,7 @@ $$ LANGUAGE plpgsql;
 def create_audit_trigger_sql(table: str, exclude: set[str] = frozenset()) -> str:
     args = ", ".join(repr(c) for c in sorted(exclude))
     return (
-        f"CREATE TRIGGER {table}_audit AFTER UPDATE OR DELETE ON {table} "
+        f"CREATE OR REPLACE TRIGGER {table}_audit AFTER UPDATE OR DELETE ON {table} "
         f"FOR EACH ROW EXECUTE FUNCTION audit_history({args});"
     )
 
@@ -75,6 +75,8 @@ def drop_audit_trigger_sql(table: str) -> str:
 
 @event.listens_for(Session, "after_begin")
 def _set_audit_actor(session, transaction, connection) -> None:
+    """Set cartei.changed_by/change_source at transaction start; callers must set
+    changed_by_var/change_source_var BEFORE any DB work or the trigger sees system/SERVICE defaults."""
     connection.exec_driver_sql(
         "SELECT set_config('cartei.changed_by', %s, true)", (changed_by_var.get(),)
     )

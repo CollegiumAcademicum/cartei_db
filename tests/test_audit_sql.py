@@ -12,7 +12,7 @@ def test_function_sql_shape():
 
 def test_trigger_sql_with_exclusion():
     sql = create_audit_trigger_sql("tenant", {"is_flinta"})
-    assert "CREATE TRIGGER tenant_audit" in sql
+    assert "CREATE OR REPLACE TRIGGER tenant_audit" in sql
     assert "AFTER UPDATE OR DELETE ON tenant" in sql
     assert "EXECUTE FUNCTION audit_history('is_flinta')" in sql
 
