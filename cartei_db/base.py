@@ -1,12 +1,10 @@
 import contextvars
-import uuid
-from datetime import date, datetime, timezone
-from decimal import Decimal
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy import DateTime, Index, Integer, String, event
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
 
 from cartei_db.enums import ChangeSource
 
@@ -37,72 +35,50 @@ class EntityHistory(Base):
     change_source: Mapped[str] = mapped_column(String, nullable=False)
 
 
-def _jsonify(value: Any) -> Any:
-    if value is None or isinstance(value, (bool, int, float, str)):
-        return value
-    if isinstance(value, datetime):  # must precede date check (datetime subclasses date)
-        return value.isoformat()
-    if isinstance(value, date):
-        return value.isoformat()
-    if isinstance(value, Decimal):
-        return str(value)
-    if isinstance(value, uuid.UUID):
-        return str(value)
-    if hasattr(value, "value"):  # enum
-        return value.value
-    return str(value)
-
-
-def _write_to_history(connection, tablename: str, entity_id: int, snapshot: dict[str, Any]) -> None:
-    connection.execute(
-        EntityHistory.__table__.insert().values(
-            entity_type=tablename,
-            entity_id=entity_id,
-            snapshot=snapshot,
-            changed_at=datetime.now(timezone.utc),
-            changed_by=changed_by_var.get(),
-            change_source=change_source_var.get().value,
-        )
-    )
-
-
-def _on_update(mapper, connection, target) -> None:
-    from sqlalchemy import inspect as sa_inspect
-
-    exclude = getattr(target.__class__, "__history_exclude__", set())
-    insp = sa_inspect(target)
-    snapshot: dict[str, Any] = {}
-
-    for col in mapper.columns:
-        if col.key in exclude:
-            continue
-        attr = insp.attrs[col.key]
-        hist = attr.history
-        # history.deleted holds the old value when an attribute was changed
-        if hist.deleted:
-            value = hist.deleted[0]
-        elif hist.unchanged:
-            value = hist.unchanged[0]
-        else:
-            value = getattr(target, col.key)
-        snapshot[col.key] = _jsonify(value)
-
-    _write_to_history(connection, target.__tablename__, target.id, snapshot)
-
-
-def _on_delete(mapper, connection, target) -> None:
-    exclude = getattr(target.__class__, "__history_exclude__", set())
-    snapshot = {
-        col.key: _jsonify(getattr(target, col.key))
-        for col in mapper.columns
-        if col.key not in exclude
-    }
-    _write_to_history(connection, target.__tablename__, target.id, snapshot)
-
-
 class Historized:
     __history_exclude__: set[str] = set()
 
 
-event.listen(Historized, "before_update", _on_update, propagate=True)
-event.listen(Historized, "before_delete", _on_delete, propagate=True)
+AUDIT_FUNCTION_SQL = """
+CREATE OR REPLACE FUNCTION audit_history() RETURNS trigger AS $$
+DECLARE
+    snap jsonb;
+    col  text;
+BEGIN
+    snap := to_jsonb(OLD);
+    FOREACH col IN ARRAY TG_ARGV LOOP
+        snap := snap - col;
+    END LOOP;
+    INSERT INTO entity_history(entity_type, entity_id, snapshot, changed_at, changed_by, change_source)
+    VALUES (
+        TG_TABLE_NAME, OLD.id, snap, now(),
+        coalesce(current_setting('cartei.changed_by', true), 'system'),
+        coalesce(current_setting('cartei.change_source', true), 'SERVICE')
+    );
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+"""
+
+
+def create_audit_trigger_sql(table: str, exclude: set[str] = frozenset()) -> str:
+    args = ", ".join(repr(c) for c in sorted(exclude))
+    return (
+        f"CREATE TRIGGER {table}_audit AFTER UPDATE OR DELETE ON {table} "
+        f"FOR EACH ROW EXECUTE FUNCTION audit_history({args});"
+    )
+
+
+def drop_audit_trigger_sql(table: str) -> str:
+    return f"DROP TRIGGER IF EXISTS {table}_audit ON {table};"
+
+
+@event.listens_for(Session, "after_begin")
+def _set_audit_actor(session, transaction, connection) -> None:
+    connection.exec_driver_sql(
+        "SELECT set_config('cartei.changed_by', %s, true)", (changed_by_var.get(),)
+    )
+    connection.exec_driver_sql(
+        "SELECT set_config('cartei.change_source', %s, true)",
+        (change_source_var.get().value,),
+    )
