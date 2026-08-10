@@ -43,7 +43,7 @@ def test_room_size_update_writes_history(session, wg):
     history = session.query(EntityHistory).filter_by(
         entity_type="room", entity_id=r.id
     ).one()
-    assert history.snapshot["size_sqm"] == "10.00"
+    assert history.snapshot["size_sqm"] == 10.0
 
 
 def test_freifinanziert_default_false(session, wg):
