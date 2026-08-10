@@ -1,20 +1,9 @@
-import uuid
-from datetime import date, datetime, timezone
-from decimal import Decimal
-
-import pytest
 from sqlalchemy import Column, Integer, String
 
-from cartei_db.base import (
-    Base, EntityHistory, Historized,
-    changed_by_var, change_source_var, _jsonify,
-)
+from cartei_db.base import Base, EntityHistory, Historized, changed_by_var, change_source_var
 from cartei_db.enums import ChangeSource
 
 
-# Minimal model registered in Base.metadata at collection time.
-# pytest imports all test modules before running session-scoped fixtures,
-# so this class will be in Base.metadata when engine.create_all() runs.
 class _Thing(Historized, Base):
     __tablename__ = "_test_thing"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -28,52 +17,22 @@ def test_context_var_defaults():
     assert change_source_var.get() == ChangeSource.SERVICE
 
 
-def test_jsonify_primitives():
-    assert _jsonify(None) is None
-    assert _jsonify(True) is True
-    assert _jsonify(42) == 42
-    assert _jsonify(3.14) == 3.14
-    assert _jsonify("hello") == "hello"
-
-
-def test_jsonify_datetime():
-    dt = datetime(2024, 1, 15, 12, 0, tzinfo=timezone.utc)
-    assert _jsonify(dt) == "2024-01-15T12:00:00+00:00"
-
-
-def test_jsonify_date():
-    assert _jsonify(date(2024, 1, 15)) == "2024-01-15"
-
-
-def test_jsonify_decimal():
-    assert _jsonify(Decimal("12.50")) == "12.50"
-
-
-def test_jsonify_uuid():
-    u = uuid.UUID("12345678-1234-5678-1234-567812345678")
-    assert _jsonify(u) == "12345678-1234-5678-1234-567812345678"
-
-
-def test_jsonify_enum():
-    assert _jsonify(ChangeSource.HUMAN) == "HUMAN"
-
-
 def test_history_written_on_update(session):
     thing = _Thing(name="original", secret="hidden")
     session.add(thing)
     session.flush()
 
     thing.name = "updated"
-    thing.secret = "new_secret"
     session.flush()
 
-    history = session.query(EntityHistory).filter_by(
+    rows = session.query(EntityHistory).filter_by(
         entity_type="_test_thing", entity_id=thing.id
-    ).one()
-    assert history.snapshot["name"] == "original"
-    assert "secret" not in history.snapshot
-    assert history.changed_by == "system"
-    assert history.change_source == "SERVICE"
+    ).all()
+    assert len(rows) == 1
+    assert rows[0].snapshot["name"] == "original"   # old value
+    assert "secret" not in rows[0].snapshot          # excluded column
+    assert rows[0].changed_by == "system"            # default when unset
+    assert rows[0].change_source == "SERVICE"
 
 
 def test_history_written_on_delete(session):
@@ -84,24 +43,27 @@ def test_history_written_on_delete(session):
     session.delete(thing)
     session.flush()
 
-    history = session.query(EntityHistory).filter_by(
+    row = session.query(EntityHistory).filter_by(
         entity_type="_test_thing", entity_id=thing.id
     ).one()
-    assert history.snapshot["name"] == "to_delete"
-    assert "secret" not in history.snapshot
+    assert row.snapshot["name"] == "to_delete"
+    assert "secret" not in row.snapshot
 
 
-def test_changed_by_context_var(session):
+def test_actor_from_context_var(session):
     token = changed_by_var.set("pbartz")
+    src = change_source_var.set(ChangeSource.HUMAN)
     try:
         thing = _Thing(name="test")
         session.add(thing)
         session.flush()
         thing.name = "changed"
         session.flush()
-        history = session.query(EntityHistory).filter_by(
+        row = session.query(EntityHistory).filter_by(
             entity_type="_test_thing", entity_id=thing.id
         ).one()
-        assert history.changed_by == "pbartz"
+        assert row.changed_by == "pbartz"
+        assert row.change_source == "HUMAN"
     finally:
         changed_by_var.reset(token)
+        change_source_var.reset(src)

@@ -46,7 +46,7 @@ DECLARE
     col  text;
 BEGIN
     snap := to_jsonb(OLD);
-    FOREACH col IN ARRAY TG_ARGV LOOP
+    FOREACH col IN ARRAY coalesce(TG_ARGV, '{}') LOOP
         snap := snap - col;
     END LOOP;
     INSERT INTO entity_history(entity_type, entity_id, snapshot, changed_at, changed_by, change_source)
