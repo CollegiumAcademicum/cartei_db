@@ -4,7 +4,6 @@ from decimal import Decimal
 import pytest
 from cartei_db.models.ag_abfrage import AGAbfrage
 from cartei_db.models.ag_abfrage_result import AGAbfrageResult
-from cartei_db.models.cluster_note import ClusterNote
 from cartei_db.models.tenant import Tenant
 from cartei_db.base import EntityHistory
 from cartei_db.enums import AGStatus
@@ -92,18 +91,6 @@ def test_result_status_update_writes_history(session, tenant, abfrage):
     ).one()
     assert history.snapshot["status"] == "ACTIVE"
 
-
-def test_create_cluster_note(session, tenant, abfrage):
-    note = ClusterNote(
-        tenant_id=tenant.id,
-        abfrage_id=abfrage.id,
-        note="Internal observation",
-        created_at=datetime(2024, 3, 15, 10, 0, 0, tzinfo=timezone.utc),
-        created_by="clusteruser",
-    )
-    session.add(note)
-    session.flush()
-    assert note.id is not None
 
 
 def test_tenant_move_in_nullable(session):

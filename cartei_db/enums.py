@@ -17,3 +17,14 @@ class ChangeSource(Enum):
 class EnrollmentType(Enum):
     STUDY = "STUDY"
     APPRENTICESHIP = "APPRENTICESHIP"
+
+
+class NoteSourceGroup(str, Enum):
+    mietverwaltung = "mietverwaltung"
+    clustersprechende = "clustersprechende"
+
+
+class NoteSubjectType(str, Enum):
+    tenant = "tenant"
+    cluster = "cluster"
+    wg = "wg"
