@@ -21,54 +21,73 @@ def tenant(session):
     return t
 
 
-def test_store_study_proof(session, tenant):
-    proof = EnrollmentProof(
+def _proof(tenant, **kwargs):
+    defaults = dict(
         tenant_id=tenant.id,
         enrollment_type=EnrollmentType.STUDY,
-        enrollment_name="Informatik B.Sc.",
-        file_data=b"%PDF-1.4 fake content",
-        file_name="immatrikulation.pdf",
-        submitted_at=datetime(2024, 3, 1, 10, 0, tzinfo=timezone.utc),
+        file_data=b"%PDF-1.4 fake",
+        file_name="proof.pdf",
+        uploaded_at=datetime(2024, 3, 1, 10, 0, tzinfo=timezone.utc),
         valid_until=date(2024, 9, 1),
     )
+    return EnrollmentProof(**{**defaults, **kwargs})
+
+
+def test_store_study_proof(session, tenant):
+    proof = _proof(tenant, field_of_study="Informatik B.Sc.", educational_institution="Uni Heidelberg")
     session.add(proof)
     session.flush()
     fetched = session.get(EnrollmentProof, proof.id)
-    assert fetched.file_data == b"%PDF-1.4 fake content"
-    assert fetched.enrollment_name == "Informatik B.Sc."
+    assert fetched.file_data == b"%PDF-1.4 fake"
+    assert fetched.field_of_study == "Informatik B.Sc."
+    assert fetched.educational_institution == "Uni Heidelberg"
+    assert fetched.needs_human_review is False
+    assert fetched.verified_at is None
+
+
+def test_schueler_and_fsj_types(session, tenant):
+    for etype in (EnrollmentType.SCHUELER, EnrollmentType.FSJ):
+        p = _proof(tenant, enrollment_type=etype)
+        session.add(p)
+    session.flush()
+    types = {p.enrollment_type for p in session.query(EnrollmentProof).filter_by(tenant_id=tenant.id).all()}
+    assert EnrollmentType.SCHUELER in types
+    assert EnrollmentType.FSJ in types
+
+
+def test_verification(session, tenant):
+    proof = _proof(tenant)
+    session.add(proof)
+    session.flush()
+    assert proof.verified_at is None
+    proof.verified_at = datetime(2024, 4, 1, tzinfo=timezone.utc)
+    proof.verified_by_id = tenant.id
+    session.flush()
+    fetched = session.get(EnrollmentProof, proof.id)
+    assert fetched.verified_at is not None
+    assert fetched.verified_by_id == tenant.id
+
+
+def test_needs_human_review_flag(session, tenant):
+    proof = _proof(tenant, needs_human_review=True)
+    session.add(proof)
+    session.flush()
+    assert session.get(EnrollmentProof, proof.id).needs_human_review is True
 
 
 def test_latest_proof_query(session, tenant):
     for month in [3, 9]:
-        session.add(EnrollmentProof(
-            tenant_id=tenant.id,
-            enrollment_type=EnrollmentType.STUDY,
-            enrollment_name="Informatik B.Sc.",
-            file_data=b"pdf",
+        session.add(_proof(
+            tenant,
             file_name=f"proof_{month}.pdf",
-            submitted_at=datetime(2024, month, 1, tzinfo=timezone.utc),
+            uploaded_at=datetime(2024, month, 1, tzinfo=timezone.utc),
             valid_until=date(2024, 9, 1) if month == 3 else date(2025, 3, 1),
         ))
     session.flush()
     latest = (
         session.query(EnrollmentProof)
         .filter_by(tenant_id=tenant.id)
-        .order_by(EnrollmentProof.submitted_at.desc())
+        .order_by(EnrollmentProof.uploaded_at.desc())
         .first()
     )
-    assert latest.submitted_at.month == 9
-
-
-def test_apprenticeship_proof(session, tenant):
-    proof = EnrollmentProof(
-        tenant_id=tenant.id,
-        enrollment_type=EnrollmentType.APPRENTICESHIP,
-        enrollment_name="Tischler",
-        file_data=b"contract bytes",
-        file_name="ausbildungsvertrag.pdf",
-        submitted_at=datetime(2024, 3, 1, tzinfo=timezone.utc),
-        valid_until=date(2024, 9, 1),
-    )
-    session.add(proof)
-    session.flush()
-    assert proof.enrollment_type == EnrollmentType.APPRENTICESHIP
+    assert latest.uploaded_at.month == 9

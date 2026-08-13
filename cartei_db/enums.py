@@ -17,6 +17,8 @@ class ChangeSource(Enum):
 class EnrollmentType(Enum):
     STUDY = "STUDY"
     APPRENTICESHIP = "APPRENTICESHIP"
+    SCHUELER = "SCHUELER"
+    FSJ = "FSJ"
 
 
 class NoteSourceGroup(str, Enum):
