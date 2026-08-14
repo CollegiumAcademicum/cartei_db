@@ -24,3 +24,4 @@ class EnrollmentProof(Base):
     verified_by_id: Mapped[Optional[int]] = mapped_column(ForeignKey("tenant.id"), nullable=True)
     verified_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     needs_human_review: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    review_reason: Mapped[Optional[str]] = mapped_column(String, nullable=True)

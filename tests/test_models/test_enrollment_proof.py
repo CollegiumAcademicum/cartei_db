@@ -75,6 +75,15 @@ def test_needs_human_review_flag(session, tenant):
     assert session.get(EnrollmentProof, proof.id).needs_human_review is True
 
 
+def test_review_reason_defaults_none_and_persists(session, tenant):
+    p = _proof(tenant)
+    session.add(p); session.flush()
+    assert p.review_reason is None
+    p.review_reason = "Signatur ungültig"
+    session.flush(); session.refresh(p)
+    assert p.review_reason == "Signatur ungültig"
+
+
 def test_latest_proof_query(session, tenant):
     for month in [3, 9]:
         session.add(_proof(
