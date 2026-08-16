@@ -10,9 +10,9 @@ def _tenant(**overrides) -> Tenant:
         first_name="Anna", last_name="Muster",
         email="anna@example.com", intranet_username="amuster",
         intranet_uuid=uuid.uuid4(), is_flinta=True,
-        barrier_free_needed=False, mailbox_key=False,
+        barrier_free_needed=False,
         mailbox_list_opt_in=False, soli_miete_wunsch=Decimal("0"),
-        is_sublet=False, move_in=date(2023, 9, 1),
+        move_in=date(2023, 9, 1),
     )
     defaults.update(overrides)
     return Tenant(**defaults)
@@ -48,21 +48,6 @@ def test_is_flinta_excluded_from_history(session):
         entity_type="tenant", entity_id=t.id
     ).one()
     assert "is_flinta" not in history.snapshot
-
-
-def test_sublet_references_primary_tenant(session):
-    primary = _tenant(intranet_username="primary", intranet_uuid=uuid.uuid4())
-    session.add(primary)
-    session.flush()
-    sub = _tenant(
-        intranet_username="subtenant", intranet_uuid=uuid.uuid4(),
-        email="sub@example.com", is_sublet=True,
-        sublet_from=date(2024, 1, 1), sublet_to=date(2024, 6, 30),
-        sublet_of_tenant_id=primary.id,
-    )
-    session.add(sub)
-    session.flush()
-    assert sub.sublet_of_tenant_id == primary.id
 
 
 def test_soli_miete_wunsch_can_be_negative(session):

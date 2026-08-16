@@ -3,8 +3,8 @@ from datetime import date
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import Boolean, Date, ForeignKey, Integer, Numeric, String, Text, Uuid
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Boolean, Date, Integer, Numeric, String, Text, Uuid
+from sqlalchemy.orm import Mapped, mapped_column
 
 from cartei_db.base import Base, Historized
 
@@ -25,23 +25,12 @@ class Tenant(Historized, Base):
     phone: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     is_flinta: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
     barrier_free_needed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    mailbox_key: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     mailbox_list_opt_in: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     soli_miete_wunsch: Mapped[Decimal] = mapped_column(
         Numeric(10, 2), nullable=False, default=Decimal("0")
-    )
-    is_sublet: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    sublet_from: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
-    sublet_to: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
-    sublet_of_tenant_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("tenant.id"), nullable=True
     )
     data_priv_signed_at: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     photo_allowance_signed_at: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     move_in: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     move_out: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     comments: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-
-    sublet_of: Mapped[Optional["Tenant"]] = relationship(
-        "Tenant", remote_side="Tenant.id", foreign_keys=[sublet_of_tenant_id]
-    )

@@ -11,9 +11,9 @@ def author(session):
     t = Tenant(
         first_name="Anna", last_name="Schreiber", email="a@ca.de",
         intranet_username="aschreiber", intranet_uuid=uuid.uuid4(),
-        is_flinta=False, barrier_free_needed=False, mailbox_key=False,
+        is_flinta=False, barrier_free_needed=False,
         mailbox_list_opt_in=False, soli_miete_wunsch=Decimal("0"),
-        is_sublet=False, move_in=date(2023, 9, 1),
+        move_in=date(2023, 9, 1),
     )
     session.add(t)
     session.flush()

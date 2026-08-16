@@ -14,9 +14,9 @@ def tenant(session):
     t = Tenant(
         first_name="Max", last_name="Muster", email="max@example.com",
         intranet_username="mmuster_tra", intranet_uuid=uuid.uuid4(),
-        is_flinta=False, barrier_free_needed=False, mailbox_key=False,
+        is_flinta=False, barrier_free_needed=False,
         mailbox_list_opt_in=False, soli_miete_wunsch=Decimal("0"),
-        is_sublet=False, move_in=date(2023, 9, 1),
+        move_in=date(2023, 9, 1),
     )
     session.add(t)
     session.flush()
@@ -72,3 +72,27 @@ def test_move_out(session, tenant, room):
     a.moved_out = date(2024, 3, 31)
     session.flush()
     assert session.get(TenantRoomAssignment, a.id).moved_out == date(2024, 3, 31)
+
+
+def test_sublet_and_key_dates_on_assignment(session, tenant, room):
+    primary = Tenant(
+        first_name="Primary", last_name="Renter", email="prim@example.com",
+        intranet_username="primary_tra", intranet_uuid=uuid.uuid4(),
+        is_flinta=False, barrier_free_needed=False,
+        mailbox_list_opt_in=False, soli_miete_wunsch=Decimal("0"),
+    )
+    session.add(primary)
+    session.flush()
+    a = TenantRoomAssignment(
+        tenant_id=tenant.id, room_id=room.id, moved_in=date(2024, 1, 1),
+        mailbox_key=True, is_sublet=True, sublet_of_tenant_id=primary.id,
+        key_received=date(2024, 1, 2), key_returned=date(2024, 6, 30),
+    )
+    session.add(a)
+    session.flush()
+    got = session.get(TenantRoomAssignment, a.id)
+    assert got.mailbox_key is True
+    assert got.is_sublet is True
+    assert got.sublet_of_tenant_id == primary.id
+    assert got.key_received == date(2024, 1, 2)
+    assert got.key_returned == date(2024, 6, 30)
