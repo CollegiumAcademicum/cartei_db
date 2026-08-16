@@ -13,5 +13,11 @@ class TenantRoomAssignment(Base):
     room_id: Mapped[int] = mapped_column(ForeignKey("room.id"), nullable=False)
     moved_in: Mapped[date] = mapped_column(Date, nullable=False)
     moved_out: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
-    key_handed_over: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    mailbox_key: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_sublet: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    sublet_of_tenant_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("tenant.id"), nullable=True
+    )
+    key_received: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    key_returned: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     deposit_iban: Mapped[Optional[str]] = mapped_column(String, nullable=True)
