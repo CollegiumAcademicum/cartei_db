@@ -45,7 +45,7 @@ def test_create_abfrage(session, abfrage):
 def test_create_result(session, tenant, abfrage):
     result = AGAbfrageResult(
         abfrage_id=abfrage.id, ag_name="ag.kueche",
-        tenant_id=tenant.id, status=AGStatus.ACTIVE,
+        tenant_id=tenant.id, status=AGStatus.AKTIV,
     )
     session.add(result)
     session.flush()
@@ -56,7 +56,7 @@ def test_create_result(session, tenant, abfrage):
 def test_result_with_note(session, tenant, abfrage):
     result = AGAbfrageResult(
         abfrage_id=abfrage.id, ag_name="ag.kueche",
-        tenant_id=tenant.id, status=AGStatus.ACTIVE,
+        tenant_id=tenant.id, status=AGStatus.AKTIV,
         note="Very engaged this round",
     )
     session.add(result)
@@ -68,7 +68,7 @@ def test_multiple_ags_per_tenant_per_round(session, tenant, abfrage):
     for ag in ["ag.kueche", "ag.garten"]:
         session.add(AGAbfrageResult(
             abfrage_id=abfrage.id, ag_name=ag,
-            tenant_id=tenant.id, status=AGStatus.ACTIVE,
+            tenant_id=tenant.id, status=AGStatus.AKTIV,
         ))
     session.flush()
     results = session.query(AGAbfrageResult).filter_by(
@@ -80,16 +80,16 @@ def test_multiple_ags_per_tenant_per_round(session, tenant, abfrage):
 def test_result_status_update_writes_history(session, tenant, abfrage):
     result = AGAbfrageResult(
         abfrage_id=abfrage.id, ag_name="ag.kueche",
-        tenant_id=tenant.id, status=AGStatus.ACTIVE,
+        tenant_id=tenant.id, status=AGStatus.AKTIV,
     )
     session.add(result)
     session.flush()
-    result.status = AGStatus.NOT_ACTIVE_ENOUGH
+    result.status = AGStatus.NICHT_AUSREICHEND
     session.flush()
     history = session.query(EntityHistory).filter_by(
         entity_type="ag_abfrage_result", entity_id=result.id
     ).one()
-    assert history.snapshot["status"] == "ACTIVE"
+    assert history.snapshot["status"] == "AKTIV"
 
 
 

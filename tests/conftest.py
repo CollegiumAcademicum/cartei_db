@@ -13,6 +13,8 @@ def engine():
     # Models are registered in Base.metadata as pytest collects test files.
     # Session-scoped fixture runs after all modules are imported.
     eng = create_engine(os.environ["DATABASE_URL"])
+    # Drop first so a crashed prior run's leftover tables/rows can't poison this one.
+    Base.metadata.drop_all(eng)
     Base.metadata.create_all(eng)
     with eng.begin() as conn:
         conn.execute(text(AUDIT_FUNCTION_SQL))

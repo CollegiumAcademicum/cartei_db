@@ -2,10 +2,11 @@ from cartei_db.enums import AGStatus, ChangeSource, EnrollmentType
 
 
 def test_ag_status_values():
-    assert AGStatus.ACTIVE.value == "ACTIVE"
-    assert AGStatus.NOT_ACTIVE_ENOUGH.value == "NOT_ACTIVE_ENOUGH"
-    assert AGStatus.CONTACTED.value == "CONTACTED"
-    assert AGStatus.INACTIVE.value == "INACTIVE"
+    assert AGStatus.ZU_AKTIV.value == "ZU_AKTIV"
+    assert AGStatus.AKTIV.value == "AKTIV"
+    assert AGStatus.NICHT_AUSREICHEND.value == "NICHT_AUSREICHEND"
+    assert AGStatus.IM_GESPRAECH.value == "IM_GESPRAECH"
+    assert AGStatus.INAKTIV.value == "INAKTIV"
 
 
 def test_change_source_values():
