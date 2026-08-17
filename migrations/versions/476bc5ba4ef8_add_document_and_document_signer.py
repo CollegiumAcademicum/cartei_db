@@ -45,18 +45,6 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('document_id', 'tenant_id', name='uq_document_signer_document_tenant')
     )
-    op.create_foreign_key(
-        'enrollment_proof_uploaded_by_id_fkey',
-        'enrollment_proof', 'tenant', ['uploaded_by_id'], ['id'],
-    )
-    op.create_foreign_key(
-        'enrollment_proof_last_edited_by_id_fkey',
-        'enrollment_proof', 'tenant', ['last_edited_by_id'], ['id'],
-    )
-    op.create_foreign_key(
-        'enrollment_proof_verified_by_id_fkey',
-        'enrollment_proof', 'tenant', ['verified_by_id'], ['id'],
-    )
     op.drop_column('tenant', 'photo_allowance_signed_at')
     op.drop_column('tenant', 'data_priv_signed_at')
 
@@ -72,9 +60,6 @@ def downgrade() -> None:
 
     op.add_column('tenant', sa.Column('data_priv_signed_at', sa.DATE(), autoincrement=False, nullable=True))
     op.add_column('tenant', sa.Column('photo_allowance_signed_at', sa.DATE(), autoincrement=False, nullable=True))
-    op.drop_constraint('enrollment_proof_verified_by_id_fkey', 'enrollment_proof', type_='foreignkey')
-    op.drop_constraint('enrollment_proof_last_edited_by_id_fkey', 'enrollment_proof', type_='foreignkey')
-    op.drop_constraint('enrollment_proof_uploaded_by_id_fkey', 'enrollment_proof', type_='foreignkey')
     op.drop_table('document_signer')
     op.drop_table('document')
     sa.Enum(name='documenttype').drop(op.get_bind())
