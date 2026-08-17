@@ -22,6 +22,9 @@ def engine():
             conn.execute(text(create_audit_trigger_sql(
                 cls.__tablename__, getattr(cls, "__history_exclude__", set())
             )))
+        from cartei_db.document_triggers import document_append_only_sql
+        for stmt in document_append_only_sql():
+            conn.execute(text(stmt))
     yield eng
     Base.metadata.drop_all(eng)
     with eng.begin() as conn:
