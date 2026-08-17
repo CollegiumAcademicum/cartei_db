@@ -16,7 +16,6 @@ def tenant(session):
         intranet_username="tuser_ag", intranet_uuid=uuid.uuid4(),
         is_flinta=False, barrier_free_needed=False,
         mailbox_list_opt_in=False, soli_miete_wunsch=Decimal("0"),
-        move_in=date(2023, 9, 1),
     )
     session.add(t)
     session.flush()
@@ -90,17 +89,3 @@ def test_result_status_update_writes_history(session, tenant, abfrage):
         entity_type="ag_abfrage_result", entity_id=result.id
     ).one()
     assert history.snapshot["status"] == "AKTIV"
-
-
-
-def test_tenant_move_in_nullable(session):
-    t = Tenant(
-        first_name="New", last_name="Person", email="np@example.com",
-        intranet_username="newperson", intranet_uuid=uuid.uuid4(),
-        is_flinta=False, barrier_free_needed=False,
-        mailbox_list_opt_in=False, soli_miete_wunsch=Decimal("0"),
-    )
-    session.add(t)
-    session.flush()
-    assert t.id is not None
-    assert t.move_in is None

@@ -31,6 +31,6 @@ class Tenant(Historized, Base):
     )
     data_priv_signed_at: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     photo_allowance_signed_at: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
-    move_in: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
-    move_out: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    # Ersteinzug/Auszug are derived from tenant_room_assignment (earliest moved_in /
+    # latest moved_out once no assignment is open) — no stored columns.
     comments: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
