@@ -16,7 +16,6 @@ def tenant(session):
         intranet_username="mmuster_tra", intranet_uuid=uuid.uuid4(),
         is_flinta=False, barrier_free_needed=False,
         mailbox_list_opt_in=False, soli_miete_wunsch=Decimal("0"),
-        move_in=date(2023, 9, 1),
     )
     session.add(t)
     session.flush()
