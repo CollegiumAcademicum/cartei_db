@@ -9,6 +9,13 @@ class AGStatus(Enum):
     INAKTIV = "INAKTIV"
 
 
+class AGHealth(Enum):
+    GESUND = "GESUND"
+    KERNAUFGABEN = "KERNAUFGABEN"
+    KRITISCH = "KRITISCH"
+    TOT = "TOT"
+
+
 class ChangeSource(Enum):
     HUMAN = "HUMAN"
     SERVICE = "SERVICE"

@@ -2,11 +2,13 @@ import uuid
 from datetime import date, datetime, timezone
 from decimal import Decimal
 import pytest
+from sqlalchemy.exc import IntegrityError
 from cartei_db.models.ag_abfrage import AGAbfrage
 from cartei_db.models.ag_abfrage_result import AGAbfrageResult
+from cartei_db.models.ag_abfrage_health import AGAbfrageHealth
 from cartei_db.models.tenant import Tenant
 from cartei_db.base import EntityHistory
-from cartei_db.enums import AGStatus
+from cartei_db.enums import AGStatus, AGHealth
 
 
 @pytest.fixture
@@ -89,3 +91,40 @@ def test_result_status_update_writes_history(session, tenant, abfrage):
         entity_type="ag_abfrage_result", entity_id=result.id
     ).one()
     assert history.snapshot["status"] == "AKTIV"
+
+
+def test_create_health(session, abfrage):
+    h = AGAbfrageHealth(
+        abfrage_id=abfrage.id, ag_name="ag.kueche",
+        health=AGHealth.KERNAUFGABEN, note="nur noch Kochdienste",
+    )
+    session.add(h)
+    session.flush()
+    assert h.id is not None
+    assert h.health == AGHealth.KERNAUFGABEN
+
+
+def test_health_unique_per_ag_per_abfrage(session, abfrage):
+    session.add(AGAbfrageHealth(
+        abfrage_id=abfrage.id, ag_name="ag.kueche", health=AGHealth.GESUND,
+    ))
+    session.flush()
+    session.add(AGAbfrageHealth(
+        abfrage_id=abfrage.id, ag_name="ag.kueche", health=AGHealth.KRITISCH,
+    ))
+    with pytest.raises(IntegrityError):
+        session.flush()
+
+
+def test_health_update_writes_history(session, abfrage):
+    h = AGAbfrageHealth(
+        abfrage_id=abfrage.id, ag_name="ag.kueche", health=AGHealth.GESUND,
+    )
+    session.add(h)
+    session.flush()
+    h.health = AGHealth.TOT
+    session.flush()
+    history = session.query(EntityHistory).filter_by(
+        entity_type="ag_abfrage_health", entity_id=h.id
+    ).one()
+    assert history.snapshot["health"] == "GESUND"
