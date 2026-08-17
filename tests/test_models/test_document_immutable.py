@@ -5,13 +5,14 @@ from decimal import Decimal
 import pytest
 from sqlalchemy.exc import DBAPIError
 
-from cartei_db.enums import DocumentType
-from cartei_db.models.document import Document
+from cartei_db.models.datenschutz_document import DatenschutzDocument
+from cartei_db.models.photoerlaubnis_document import PhotoerlaubnisDocument
 from cartei_db.models.tenant import Tenant
 
 
-@pytest.fixture
-def document(session):
+@pytest.fixture(params=[DatenschutzDocument, PhotoerlaubnisDocument])
+def document(session, request):
+    model = request.param
     t = Tenant(
         first_name="Im", last_name="Mutable", email="im@example.com",
         intranet_username="immut_doc", intranet_uuid=uuid.uuid4(),
@@ -20,13 +21,13 @@ def document(session):
     )
     session.add(t)
     session.flush()
-    doc = Document(
-        tenant_id=t.id, document_type=DocumentType.datenschutz,
-        file_name="d.pdf", file_data=b"x", signed_at=date(2026, 8, 1),
+    doc = model(
+        tenant_id=t.id, file_name="d.pdf", file_data=b"x", signed_at=date(2026, 8, 1),
         uploaded_at=datetime(2026, 8, 2, tzinfo=timezone.utc), uploaded_by_id=t.id,
     )
     session.add(doc)
     session.flush()
+    doc._model = model
     return doc
 
 
@@ -51,11 +52,12 @@ def test_revoke_without_note_is_rejected(session, document):
 
 
 def test_revoke_with_note_succeeds(session, document):
+    model = document._model
     document.revoked_at = datetime(2026, 8, 10, tzinfo=timezone.utc)
     document.revoked_by_id = document.uploaded_by_id
     document.revoked_note = "Einwilligung widerrufen"
     session.flush()
-    fetched = session.get(Document, document.id)
+    fetched = session.get(model, document.id)
     assert fetched.revoked_at is not None
     assert fetched.revoked_note == "Einwilligung widerrufen"
 

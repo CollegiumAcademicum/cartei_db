@@ -4,8 +4,8 @@ from decimal import Decimal
 
 import pytest
 
-from cartei_db.enums import DocumentType
-from cartei_db.models.document import Document
+from cartei_db.models.datenschutz_document import DatenschutzDocument
+from cartei_db.models.photoerlaubnis_document import PhotoerlaubnisDocument
 from cartei_db.models.tenant import Tenant
 
 
@@ -22,26 +22,20 @@ def tenant(session):
     return t
 
 
-def _document(tenant, **kwargs):
-    defaults = dict(
+@pytest.mark.parametrize("model", [DatenschutzDocument, PhotoerlaubnisDocument])
+def test_store_document(session, tenant, model):
+    doc = model(
         tenant_id=tenant.id,
-        document_type=DocumentType.datenschutz,
-        file_name="datenschutz.pdf",
+        file_name="doc.pdf",
         file_data=b"%PDF-1.4 fake",
         signed_at=date(2026, 8, 1),
         uploaded_at=datetime(2026, 8, 2, 9, 0, tzinfo=timezone.utc),
         uploaded_by_id=tenant.id,
     )
-    return Document(**{**defaults, **kwargs})
-
-
-def test_store_datenschutz_document(session, tenant):
-    doc = _document(tenant)
     session.add(doc)
     session.flush()
-    fetched = session.get(Document, doc.id)
+    fetched = session.get(model, doc.id)
     assert fetched.file_data == b"%PDF-1.4 fake"
-    assert fetched.document_type is DocumentType.datenschutz
     assert fetched.signed_at == date(2026, 8, 1)
     assert fetched.uploaded_by_id == tenant.id
     assert fetched.revoked_at is None
@@ -49,8 +43,18 @@ def test_store_datenschutz_document(session, tenant):
     assert fetched.revoked_note is None
 
 
-def test_store_photoerlaubnis_document(session, tenant):
-    doc = _document(tenant, document_type=DocumentType.photoerlaubnis, file_name="foto.pdf")
-    session.add(doc)
+def test_per_type_tables_are_independent(session, tenant):
+    ds = DatenschutzDocument(
+        tenant_id=tenant.id, file_name="ds.pdf", file_data=b"a",
+        signed_at=date(2026, 8, 1),
+        uploaded_at=datetime(2026, 8, 2, tzinfo=timezone.utc), uploaded_by_id=tenant.id,
+    )
+    pe = PhotoerlaubnisDocument(
+        tenant_id=tenant.id, file_name="pe.pdf", file_data=b"b",
+        signed_at=date(2026, 8, 1),
+        uploaded_at=datetime(2026, 8, 2, tzinfo=timezone.utc), uploaded_by_id=tenant.id,
+    )
+    session.add_all([ds, pe])
     session.flush()
-    assert session.get(Document, doc.id).document_type is DocumentType.photoerlaubnis
+    assert ds.__tablename__ == "datenschutz_document"
+    assert pe.__tablename__ == "photoerlaubnis_document"
