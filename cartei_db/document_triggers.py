@@ -16,6 +16,9 @@ DOCUMENT_TABLES = (
     "datenschutz_document",
     "photoerlaubnis_document",
     "vertraulichkeitserklaerung_document",
+    "mietvertrag_document",
+    "mietbedingungen_document",
+    "wohnungsgeberbescheinigung_document",
 )
 
 _FUNCTION = """
