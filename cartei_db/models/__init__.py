@@ -7,8 +7,9 @@ from cartei_db.models.ag_abfrage import AGAbfrage
 from cartei_db.models.ag_abfrage_result import AGAbfrageResult
 from cartei_db.models.enrollment_proof import EnrollmentProof
 from cartei_db.models.internal_note import InternalNote
+from cartei_db.models.document import Document
 
 __all__ = [
     "Building", "WG", "Room", "Tenant", "TenantRoomAssignment",
-    "AGAbfrage", "AGAbfrageResult", "EnrollmentProof", "InternalNote",
+    "AGAbfrage", "AGAbfrageResult", "EnrollmentProof", "InternalNote", "Document",
 ]
