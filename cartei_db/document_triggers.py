@@ -12,7 +12,11 @@ migration and the test conftest.
 """
 
 # Every per-type document table that carries the append-only invariant.
-DOCUMENT_TABLES = ("datenschutz_document", "photoerlaubnis_document")
+DOCUMENT_TABLES = (
+    "datenschutz_document",
+    "photoerlaubnis_document",
+    "vertraulichkeitserklaerung_document",
+)
 
 _FUNCTION = """
 CREATE OR REPLACE FUNCTION document_append_only() RETURNS trigger AS $$

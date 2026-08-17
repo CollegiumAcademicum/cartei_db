@@ -42,3 +42,4 @@ class NoteSubjectType(str, Enum):
 class DocumentType(str, Enum):
     datenschutz = "datenschutz"
     photoerlaubnis = "photoerlaubnis"
+    vertraulichkeitserklaerung = "vertraulichkeitserklaerung"

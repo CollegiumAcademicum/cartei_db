@@ -10,10 +10,12 @@ from cartei_db.models.enrollment_proof import EnrollmentProof
 from cartei_db.models.internal_note import InternalNote
 from cartei_db.models.datenschutz_document import DatenschutzDocument
 from cartei_db.models.photoerlaubnis_document import PhotoerlaubnisDocument
+from cartei_db.models.vertraulichkeitserklaerung_document import VertraulichkeitserklaerungDocument
 from cartei_db.models.document_signer import DocumentSigner
 
 __all__ = [
     "Building", "WG", "Room", "Tenant", "TenantRoomAssignment",
     "AGAbfrage", "AGAbfrageResult", "AGAbfrageHealth", "EnrollmentProof", "InternalNote",
-    "DatenschutzDocument", "PhotoerlaubnisDocument", "DocumentSigner",
+    "DatenschutzDocument", "PhotoerlaubnisDocument", "VertraulichkeitserklaerungDocument",
+    "DocumentSigner",
 ]
