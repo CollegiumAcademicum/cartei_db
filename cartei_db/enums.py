@@ -37,3 +37,8 @@ class NoteSubjectType(str, Enum):
     tenant = "tenant"
     cluster = "cluster"
     wg = "wg"
+
+
+class DocumentType(str, Enum):
+    datenschutz = "datenschutz"
+    photoerlaubnis = "photoerlaubnis"

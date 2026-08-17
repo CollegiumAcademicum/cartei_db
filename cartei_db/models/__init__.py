@@ -8,8 +8,11 @@ from cartei_db.models.ag_abfrage_result import AGAbfrageResult
 from cartei_db.models.ag_abfrage_health import AGAbfrageHealth
 from cartei_db.models.enrollment_proof import EnrollmentProof
 from cartei_db.models.internal_note import InternalNote
+from cartei_db.models.document import Document
+from cartei_db.models.document_signer import DocumentSigner
 
 __all__ = [
     "Building", "WG", "Room", "Tenant", "TenantRoomAssignment",
     "AGAbfrage", "AGAbfrageResult", "AGAbfrageHealth", "EnrollmentProof", "InternalNote",
+    "Document", "DocumentSigner",
 ]
