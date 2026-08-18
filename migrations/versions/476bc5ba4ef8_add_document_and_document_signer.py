@@ -14,10 +14,13 @@ from alembic import op
 import sqlalchemy as sa
 
 from cartei_db.document_triggers import (
-    DOCUMENT_TABLES,
     document_append_only_sql,
     drop_document_append_only_sql,
 )
+
+# Snapshot of DOCUMENT_TABLES as of this migration — do not use the live tuple
+# (new document tables added later have their own migrations).
+_DOC_TABLES = ("datenschutz_document", "photoerlaubnis_document")
 
 
 # revision identifiers, used by Alembic.
@@ -48,7 +51,7 @@ def _create_document_table(name: str) -> None:
 
 
 def upgrade() -> None:
-    for table in DOCUMENT_TABLES:
+    for table in _DOC_TABLES:
         _create_document_table(table)
 
     # Polymorphic signer: document_id has no FK (points at any document table).
@@ -69,17 +72,17 @@ def upgrade() -> None:
     op.drop_column('tenant', 'photo_allowance_signed_at')
     op.drop_column('tenant', 'data_priv_signed_at')
 
-    for stmt in document_append_only_sql():
+    for stmt in document_append_only_sql(_DOC_TABLES):
         op.execute(stmt)
 
 
 def downgrade() -> None:
-    for stmt in drop_document_append_only_sql():
+    for stmt in drop_document_append_only_sql(_DOC_TABLES):
         op.execute(stmt)
 
     op.add_column('tenant', sa.Column('data_priv_signed_at', sa.DATE(), nullable=True))
     op.add_column('tenant', sa.Column('photo_allowance_signed_at', sa.DATE(), nullable=True))
 
     op.drop_table('document_signer')
-    for table in DOCUMENT_TABLES:
+    for table in _DOC_TABLES:
         op.drop_table(table)
