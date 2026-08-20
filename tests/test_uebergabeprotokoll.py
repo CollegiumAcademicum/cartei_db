@@ -39,3 +39,28 @@ def test_protocol_and_damage_round_trip(session):
     session.add(d); session.flush()
     assert d.count_mid == 0 and d.count_gt == 0
     assert session.get(UebergabeProtokoll, p.id).damages[0].line == DamageLine.BODEN_FLECKEN
+
+
+import pytest
+from sqlalchemy.exc import DBAPIError
+
+from cartei_db.models import UebergabeProtokollDocument
+
+
+def test_scan_is_append_only(session):
+    a, t = _assignment(session)
+    p = UebergabeProtokoll(tenant_room_assignment_id=a.id,
+                           protocol_type=UebergabeProtokollType.AUSZUG,
+                           created_at=datetime.now(timezone.utc))
+    session.add(p); session.flush()
+    doc = UebergabeProtokollDocument(
+        tenant_room_assignment_id=a.id, uebergabeprotokoll_id=p.id,
+        file_name="scan.pdf", file_data=b"%PDF-1.4",
+        uploaded_at=datetime.now(timezone.utc), uploaded_by_id=t.id,
+    )
+    session.add(doc); session.flush()
+    doc.revoked_at = datetime.now(timezone.utc); doc.revoked_by_id = t.id
+    doc.revoked_note = "falsch"
+    session.flush()  # single revocation allowed
+    with pytest.raises(DBAPIError):
+        doc.file_name = "other.pdf"; session.flush()
