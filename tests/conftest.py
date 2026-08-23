@@ -25,10 +25,14 @@ def engine():
         from cartei_db.document_triggers import document_append_only_sql
         for stmt in document_append_only_sql():
             conn.execute(text(stmt))
+        from cartei_db.damage_triggers import damage_no_delete_sql
+        for stmt in damage_no_delete_sql():
+            conn.execute(text(stmt))
     yield eng
     Base.metadata.drop_all(eng)
     with eng.begin() as conn:
         conn.execute(text("DROP FUNCTION IF EXISTS audit_history() CASCADE"))
+        conn.execute(text("DROP FUNCTION IF EXISTS damage_no_delete() CASCADE"))
     eng.dispose()
 
 

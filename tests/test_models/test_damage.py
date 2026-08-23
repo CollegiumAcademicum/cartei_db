@@ -57,3 +57,45 @@ def test_wg_damage_persists(session, fixtures):
     session.add(d)
     session.flush()
     assert session.get(WGDamage, d.id).size is None
+
+
+from datetime import datetime as _dt
+from sqlalchemy.exc import DBAPIError
+
+
+def _open_room_damage(session, fixtures):
+    d = RoomDamage(
+        room_id=fixtures["room"].id, line=RoomDamageLine.BODEN_FLECKEN,
+        created_at=_dt(2026, 8, 22, tzinfo=timezone.utc),
+        created_by_id=fixtures["tenant"].id,
+    )
+    session.add(d)
+    session.flush()
+    return d
+
+
+def test_delete_is_rejected(session, fixtures):
+    d = _open_room_damage(session, fixtures)
+    session.delete(d)
+    with pytest.raises(DBAPIError):
+        session.flush()
+
+
+def test_fix_and_reopen_are_allowed(session, fixtures):
+    d = _open_room_damage(session, fixtures)
+    d.fixed_at = _dt(2026, 8, 23, tzinfo=timezone.utc)
+    d.fixed_by_id = fixtures["tenant"].id
+    session.flush()
+    assert session.get(RoomDamage, d.id).fixed_at is not None
+    # reopen
+    d.fixed_at = None
+    d.fixed_by_id = None
+    session.flush()
+    assert session.get(RoomDamage, d.id).fixed_at is None
+
+
+def test_note_edit_is_allowed(session, fixtures):
+    d = _open_room_damage(session, fixtures)
+    d.note = "Nachtrag"
+    session.flush()
+    assert session.get(RoomDamage, d.id).note == "Nachtrag"
