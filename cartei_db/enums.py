@@ -45,28 +45,13 @@ class DocumentType(str, Enum):
     vertraulichkeitserklaerung = "vertraulichkeitserklaerung"
 
 
-class UebergabeProtokollType(str, Enum):
-    EINZUG = "EINZUG"
-    AUSZUG = "AUSZUG"
+class DamageSize(str, Enum):
+    LT1 = "LT1"   # < 1 cm
+    MID = "MID"   # 1–5 cm
+    GT = "GT"     # > 5 cm
 
 
-class PartitionPosition(str, Enum):
-    SQM_7 = "SQM_7"
-    SQM_14 = "SQM_14"
-
-
-class FurnitureSource(str, Enum):
-    GEFRAEST = "GEFRAEST"
-    MOEBELSPENDE = "MOEBELSPENDE"
-    NICHT_VORHANDEN = "NICHT_VORHANDEN"
-
-
-class MattressSource(str, Enum):
-    CA = "CA"
-    NICHT_VORHANDEN = "NICHT_VORHANDEN"
-
-
-class DamageLine(str, Enum):
+class RoomDamageLine(str, Enum):
     BODEN_FLECKEN = "BODEN_FLECKEN"
     BODEN_LOECHER = "BODEN_LOECHER"
     FUSSLEISTE_FLECKEN = "FUSSLEISTE_FLECKEN"
@@ -85,3 +70,18 @@ class DamageLine(str, Enum):
     SCHREIBTISCH_LOECHER = "SCHREIBTISCH_LOECHER"
     SCHRANK_FLECKEN = "SCHRANK_FLECKEN"
     SCHRANK_LOECHER = "SCHRANK_LOECHER"
+
+
+class WGDamageLine(str, Enum):
+    BAD_FLECK = "BAD_FLECK"
+    BAD_LOCH = "BAD_LOCH"
+    BAD_KLEBER = "BAD_KLEBER"
+    BAD_SONSTIGES = "BAD_SONSTIGES"
+    KUECHE_FLECK = "KUECHE_FLECK"
+    KUECHE_LOCH = "KUECHE_LOCH"
+    KUECHE_KLEBER = "KUECHE_KLEBER"
+    KUECHE_SONSTIGES = "KUECHE_SONSTIGES"
+    GEMEINSCHAFT_FLECK = "GEMEINSCHAFT_FLECK"
+    GEMEINSCHAFT_LOCH = "GEMEINSCHAFT_LOCH"
+    GEMEINSCHAFT_KLEBER = "GEMEINSCHAFT_KLEBER"
+    GEMEINSCHAFT_SONSTIGES = "GEMEINSCHAFT_SONSTIGES"

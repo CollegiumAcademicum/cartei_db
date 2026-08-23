@@ -19,7 +19,6 @@ DOCUMENT_TABLES = (
     "mietvertrag_document",
     "mietbedingungen_document",
     "wohnungsgeberbescheinigung_document",
-    "uebergabeprotokoll_document",
 )
 
 _FUNCTION = """

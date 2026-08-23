@@ -15,9 +15,8 @@ from cartei_db.models.document_signer import DocumentSigner
 from cartei_db.models.mietvertrag_document import MietvertragDocument
 from cartei_db.models.mietbedingungen_document import MietbedingungenDocument
 from cartei_db.models.wohnungsgeberbescheinigung_document import WohnungsgeberbescheinigungDocument
-from cartei_db.models.uebergabeprotokoll import UebergabeProtokoll
-from cartei_db.models.uebergabeprotokoll_damage import UebergabeProtokollDamage
-from cartei_db.models.uebergabeprotokoll_document import UebergabeProtokollDocument
+from cartei_db.models.room_damage import RoomDamage
+from cartei_db.models.wg_damage import WGDamage
 
 __all__ = [
     "Building", "WG", "Room", "Tenant", "TenantRoomAssignment",
@@ -25,5 +24,5 @@ __all__ = [
     "DatenschutzDocument", "PhotoerlaubnisDocument", "VertraulichkeitserklaerungDocument",
     "DocumentSigner",
     "MietvertragDocument", "MietbedingungenDocument", "WohnungsgeberbescheinigungDocument",
-    "UebergabeProtokoll", "UebergabeProtokollDamage", "UebergabeProtokollDocument",
+    "RoomDamage", "WGDamage",
 ]
