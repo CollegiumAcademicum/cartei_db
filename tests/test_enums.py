@@ -25,8 +25,8 @@ def test_damage_size_values():
 
 def test_room_damage_line_has_furniture_and_surfaces():
     vals = {l.value for l in RoomDamageLine}
-    assert {"BODEN_FLECKEN", "WAND_KLEBER", "BETT_LOECHER", "SCHRANK_FLECKEN"} <= vals
-    assert len(vals) == 18
+    assert {"BODEN_FLECKEN", "WAND_KLEBER", "BETT_LOECHER", "SCHRANK_FLECKEN", "SONSTIGES"} <= vals
+    assert len(vals) == 19
 
 
 def test_wg_damage_line_is_area_by_defect():
