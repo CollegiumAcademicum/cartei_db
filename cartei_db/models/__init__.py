@@ -17,6 +17,7 @@ from cartei_db.models.mietbedingungen_document import MietbedingungenDocument
 from cartei_db.models.wohnungsgeberbescheinigung_document import WohnungsgeberbescheinigungDocument
 from cartei_db.models.room_damage import RoomDamage
 from cartei_db.models.wg_damage import WGDamage
+from cartei_db.models.user_session import UserSession
 
 __all__ = [
     "Building", "WG", "Room", "Tenant", "TenantRoomAssignment",
@@ -24,5 +25,5 @@ __all__ = [
     "DatenschutzDocument", "PhotoerlaubnisDocument", "VertraulichkeitserklaerungDocument",
     "DocumentSigner",
     "MietvertragDocument", "MietbedingungenDocument", "WohnungsgeberbescheinigungDocument",
-    "RoomDamage", "WGDamage",
+    "RoomDamage", "WGDamage", "UserSession",
 ]
