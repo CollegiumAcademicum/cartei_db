@@ -15,6 +15,9 @@ from cartei_db.models.document_signer import DocumentSigner
 from cartei_db.models.mietvertrag_document import MietvertragDocument
 from cartei_db.models.mietbedingungen_document import MietbedingungenDocument
 from cartei_db.models.wohnungsgeberbescheinigung_document import WohnungsgeberbescheinigungDocument
+from cartei_db.models.sepa_lastschriftmandat_document import SepaLastschriftmandatDocument
+from cartei_db.models.bescheid_ausbildungsstelle_document import BescheidAusbildungsstelleDocument
+from cartei_db.models.selbstverpflichtung_engagement_document import SelbstverpflichtungEngagementDocument
 from cartei_db.models.room_damage import RoomDamage
 from cartei_db.models.wg_damage import WGDamage
 from cartei_db.models.user_session import UserSession
@@ -25,5 +28,7 @@ __all__ = [
     "DatenschutzDocument", "PhotoerlaubnisDocument", "VertraulichkeitserklaerungDocument",
     "DocumentSigner",
     "MietvertragDocument", "MietbedingungenDocument", "WohnungsgeberbescheinigungDocument",
+    "SepaLastschriftmandatDocument", "BescheidAusbildungsstelleDocument",
+    "SelbstverpflichtungEngagementDocument",
     "RoomDamage", "WGDamage", "UserSession",
 ]
