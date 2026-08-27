@@ -43,6 +43,9 @@ class DocumentType(str, Enum):
     datenschutz = "datenschutz"
     photoerlaubnis = "photoerlaubnis"
     vertraulichkeitserklaerung = "vertraulichkeitserklaerung"
+    sepa_lastschriftmandat = "sepa_lastschriftmandat"
+    bescheid_ausbildungsstelle = "bescheid_ausbildungsstelle"
+    selbstverpflichtung_engagement = "selbstverpflichtung_engagement"
 
 
 class DamageSize(str, Enum):

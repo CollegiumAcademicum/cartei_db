@@ -19,6 +19,9 @@ DOCUMENT_TABLES = (
     "mietvertrag_document",
     "mietbedingungen_document",
     "wohnungsgeberbescheinigung_document",
+    "sepa_lastschriftmandat_document",
+    "bescheid_ausbildungsstelle_document",
+    "selbstverpflichtung_engagement_document",
 )
 
 _FUNCTION = """

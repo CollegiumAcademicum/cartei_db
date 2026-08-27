@@ -7,10 +7,15 @@ from sqlalchemy.exc import DBAPIError
 
 from cartei_db.models.datenschutz_document import DatenschutzDocument
 from cartei_db.models.photoerlaubnis_document import PhotoerlaubnisDocument
+from cartei_db.models.selbstverpflichtung_engagement_document import (
+    SelbstverpflichtungEngagementDocument,
+)
 from cartei_db.models.tenant import Tenant
 
 
-@pytest.fixture(params=[DatenschutzDocument, PhotoerlaubnisDocument])
+@pytest.fixture(params=[
+    DatenschutzDocument, PhotoerlaubnisDocument, SelbstverpflichtungEngagementDocument,
+])
 def document(session, request):
     model = request.param
     t = Tenant(
@@ -77,5 +82,30 @@ def test_revoke_may_not_change_other_columns(session, document):
     document.revoked_by_id = document.uploaded_by_id
     document.revoked_note = "widerruf"
     document.file_name = "sneaky.pdf"
+    with pytest.raises(DBAPIError):
+        session.flush()
+
+
+def test_wide_table_append_only(session):
+    """The row-shape-agnostic trigger also holds on tables with extra columns
+    (SEPA carries five structured fields)."""
+    from cartei_db.models.sepa_lastschriftmandat_document import SepaLastschriftmandatDocument
+    t = Tenant(
+        first_name="Wide", last_name="Row", email="wide@example.com",
+        intranet_username="wide_doc", intranet_uuid=uuid.uuid4(),
+        is_flinta=False, barrier_free_needed=False,
+        mailbox_list_opt_in=False, soli_miete_wunsch=Decimal("0"),
+    )
+    session.add(t)
+    session.flush()
+    doc = SepaLastschriftmandatDocument(
+        tenant_id=t.id, file_name="s.pdf", file_data=b"x", signed_at=date(2026, 8, 1),
+        uploaded_at=datetime(2026, 8, 2, tzinfo=timezone.utc), uploaded_by_id=t.id,
+        mandatsreferenz="R1", kontoinhaber="Wide Row", bank_name="Bank",
+        iban="DE00", bic="BICX",
+    )
+    session.add(doc)
+    session.flush()
+    doc.iban = "DE99"  # non-revoke change to an extra column
     with pytest.raises(DBAPIError):
         session.flush()
