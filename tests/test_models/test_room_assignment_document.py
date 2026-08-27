@@ -47,7 +47,8 @@ def assignment(session):
     return a
 
 
-def _common(assignment):
+def _assignment_common(assignment):
+    """Per-assignment document (Wohnungsgeberbescheinigung), keyed on the tenancy."""
     return dict(
         tenant_room_assignment_id=assignment.id,
         file_name="doc.pdf", file_data=b"%PDF-1.4 x",
@@ -56,9 +57,19 @@ def _common(assignment):
     )
 
 
+def _tenant_common(assignment):
+    """Per-tenant document (Mietvertrag, Mietbedingungen), keyed on the person."""
+    return dict(
+        tenant_id=assignment._tenant.id,
+        file_name="doc.pdf", file_data=b"%PDF-1.4 x",
+        uploaded_at=datetime(2026, 8, 2, 9, 0, tzinfo=timezone.utc),
+        uploaded_by_id=assignment._tenant.id,
+    )
+
+
 def test_store_mietvertrag(session, assignment):
     doc = MietvertragDocument(
-        **_common(assignment),
+        **_tenant_common(assignment),
         renter_signed_at=date(2026, 8, 1),
         company_signed_at=date(2026, 8, 3),
         company_signed_by_id=assignment._tenant.id,
@@ -73,7 +84,7 @@ def test_store_mietvertrag(session, assignment):
 
 
 def test_store_mietbedingungen(session, assignment):
-    doc = MietbedingungenDocument(**_common(assignment), signed_at=date(2026, 8, 1))
+    doc = MietbedingungenDocument(**_tenant_common(assignment), signed_at=date(2026, 8, 1))
     session.add(doc)
     session.flush()
     assert session.get(MietbedingungenDocument, doc.id).signed_at == date(2026, 8, 1)
@@ -81,7 +92,7 @@ def test_store_mietbedingungen(session, assignment):
 
 def test_store_wohnungsgeberbescheinigung(session, assignment):
     doc = WohnungsgeberbescheinigungDocument(
-        **_common(assignment),
+        **_assignment_common(assignment),
         signed_at=date(2026, 8, 1),
         company_signed_by_id=assignment._tenant.id,
     )
@@ -93,7 +104,7 @@ def test_store_wohnungsgeberbescheinigung(session, assignment):
 
 
 def test_delete_is_rejected(session, assignment):
-    doc = MietbedingungenDocument(**_common(assignment), signed_at=date(2026, 8, 1))
+    doc = MietbedingungenDocument(**_tenant_common(assignment), signed_at=date(2026, 8, 1))
     session.add(doc)
     session.flush()
     session.delete(doc)
@@ -102,7 +113,7 @@ def test_delete_is_rejected(session, assignment):
 
 
 def test_non_revoke_update_is_rejected(session, assignment):
-    doc = MietbedingungenDocument(**_common(assignment), signed_at=date(2026, 8, 1))
+    doc = MietbedingungenDocument(**_tenant_common(assignment), signed_at=date(2026, 8, 1))
     session.add(doc)
     session.flush()
     doc.file_name = "changed.pdf"
@@ -111,7 +122,7 @@ def test_non_revoke_update_is_rejected(session, assignment):
 
 
 def test_revoke_with_note_succeeds(session, assignment):
-    doc = MietbedingungenDocument(**_common(assignment), signed_at=date(2026, 8, 1))
+    doc = MietbedingungenDocument(**_tenant_common(assignment), signed_at=date(2026, 8, 1))
     session.add(doc)
     session.flush()
     doc.revoked_at = datetime(2026, 8, 10, tzinfo=timezone.utc)
@@ -122,7 +133,7 @@ def test_revoke_with_note_succeeds(session, assignment):
 
 
 def test_revoke_without_note_is_rejected(session, assignment):
-    doc = MietbedingungenDocument(**_common(assignment), signed_at=date(2026, 8, 1))
+    doc = MietbedingungenDocument(**_tenant_common(assignment), signed_at=date(2026, 8, 1))
     session.add(doc)
     session.flush()
     doc.revoked_at = datetime(2026, 8, 10, tzinfo=timezone.utc)
