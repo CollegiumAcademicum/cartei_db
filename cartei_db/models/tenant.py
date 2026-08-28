@@ -17,8 +17,10 @@ class Tenant(Historized, Base):
     first_name: Mapped[str] = mapped_column(String, nullable=False)
     last_name: Mapped[str] = mapped_column(String, nullable=False)
     email: Mapped[str] = mapped_column(String, nullable=False)
-    intranet_username: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    intranet_uuid: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False, unique=True)
+    # LDAP account link — NULL for tenants added manually by Mietverwaltung before
+    # an intranet account exists. unique() still permits many NULLs (each distinct).
+    intranet_username: Mapped[Optional[str]] = mapped_column(String, nullable=True, unique=True)
+    intranet_uuid: Mapped[Optional[uuid.UUID]] = mapped_column(Uuid, nullable=True, unique=True)
     preferred_name: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     pronouns: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     date_of_birth: Mapped[Optional[date]] = mapped_column(Date, nullable=True)

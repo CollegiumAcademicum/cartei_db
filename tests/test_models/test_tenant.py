@@ -24,6 +24,17 @@ def test_create_tenant(session):
     assert t.id is not None
 
 
+def test_account_less_tenants_coexist(session):
+    # Manually-created tenants (by Mietverwaltung) have no LDAP link yet:
+    # intranet_username / intranet_uuid are NULL. The unique constraints must
+    # still allow more than one such row (Postgres treats each NULL as distinct).
+    a = _tenant(intranet_username=None, intranet_uuid=None)
+    b = _tenant(intranet_username=None, intranet_uuid=None)
+    session.add_all([a, b])
+    session.flush()
+    assert a.id is not None and b.id is not None
+
+
 def test_update_email_writes_history(session):
     t = _tenant(email="old@example.com")
     session.add(t)
