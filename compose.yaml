@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:17
+    image: postgres:16  # match production (cartei_deployment runs postgres:16)
     environment:
       POSTGRES_USER: cartei
       POSTGRES_PASSWORD: cartei

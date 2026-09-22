@@ -8,7 +8,7 @@ export DATABASE_URL="${DATABASE_URL:-postgresql+psycopg://cartei:cartei@localhos
 export POSTGRES_DSN="${POSTGRES_DSN:-postgresql://cartei:cartei@localhost:5432/cartei}"
 
 docker compose up -d
-uv run alembic revision --autogenerate -m "${1:-initial}"
+until docker compose exec -T db pg_isready -U cartei >/dev/null 2>&1; do sleep 1; done
 uv run alembic upgrade head
 
 psql "$POSTGRES_DSN" \
