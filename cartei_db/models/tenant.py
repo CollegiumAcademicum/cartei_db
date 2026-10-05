@@ -1,9 +1,9 @@
 import uuid
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import Boolean, Date, Integer, Numeric, String, Text, Uuid
+from sqlalchemy import Boolean, Date, DateTime, Integer, Numeric, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from cartei_db.base import Base, Historized
@@ -28,6 +28,8 @@ class Tenant(Historized, Base):
     is_flinta: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
     barrier_free_needed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     mailbox_list_opt_in: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    profile_setup_completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    no_phone_number: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
     soli_miete_wunsch: Mapped[Decimal] = mapped_column(
         Numeric(10, 2), nullable=False, default=Decimal("0")
     )
