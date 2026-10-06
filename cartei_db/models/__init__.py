@@ -21,6 +21,7 @@ from cartei_db.models.selbstverpflichtung_engagement_document import Selbstverpf
 from cartei_db.models.room_damage import RoomDamage
 from cartei_db.models.wg_damage import WGDamage
 from cartei_db.models.user_session import UserSession
+from cartei_db.models.impersonation_event import ImpersonationEvent
 
 __all__ = [
     "Building", "WG", "Room", "Tenant", "TenantRoomAssignment",
@@ -30,5 +31,5 @@ __all__ = [
     "MietvertragDocument", "MietbedingungenDocument", "WohnungsgeberbescheinigungDocument",
     "SepaLastschriftmandatDocument", "BescheidAusbildungsstelleDocument",
     "SelbstverpflichtungEngagementDocument",
-    "RoomDamage", "WGDamage", "UserSession",
+    "RoomDamage", "WGDamage", "UserSession", "ImpersonationEvent",
 ]
