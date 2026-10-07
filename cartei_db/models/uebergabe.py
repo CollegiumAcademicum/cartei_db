@@ -20,6 +20,8 @@ class Uebergabe(Historized, Base):
     room_id: Mapped[int] = mapped_column(ForeignKey("room.id"), nullable=False)
     tenant_room_assignment_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("tenant_room_assignment.id"), nullable=True)
+    incoming_tenant_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("tenant.id"), nullable=True)
     conducted_by_id: Mapped[int] = mapped_column(ForeignKey("tenant.id"), nullable=False)
     conducted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -52,3 +52,16 @@ def test_complete_writes_history(session, room, inspector):
     history = session.query(EntityHistory).filter_by(
         entity_type="uebergabe", entity_id=u.id).one()
     assert history.snapshot["completed_at"] is None
+
+
+def test_create_with_incoming_tenant(session, room, inspector):
+    incoming = Tenant(first_name="In", last_name="Coming", email="in@example.com",
+                      intranet_username="incoming_ub", intranet_uuid=uuid.uuid4(),
+                      is_flinta=False, barrier_free_needed=False,
+                      mailbox_list_opt_in=False, soli_miete_wunsch=Decimal("0"))
+    session.add(incoming); session.flush()
+    u = Uebergabe(room_id=room.id, conducted_by_id=inspector.id,
+                  conducted_at=datetime(2026, 10, 7, 12, 0, tzinfo=timezone.utc),
+                  incoming_tenant_id=incoming.id)
+    session.add(u); session.flush()
+    assert u.incoming_tenant_id == incoming.id
