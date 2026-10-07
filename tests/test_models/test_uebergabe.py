@@ -36,7 +36,7 @@ def inspector(session):
 
 
 def test_create_uebergabe(session, room, inspector):
-    u = Uebergabe(room_id=room.id, tenant_room_assignment_id=None,
+    u = Uebergabe(room_id=room.id, outgoing_assignment_id=None,
                   conducted_by_id=inspector.id,
                   conducted_at=datetime(2026, 10, 7, 12, 0, tzinfo=timezone.utc))
     session.add(u); session.flush()
@@ -54,14 +54,17 @@ def test_complete_writes_history(session, room, inspector):
     assert history.snapshot["completed_at"] is None
 
 
-def test_create_with_incoming_tenant(session, room, inspector):
-    incoming = Tenant(first_name="In", last_name="Coming", email="in@example.com",
-                      intranet_username="incoming_ub", intranet_uuid=uuid.uuid4(),
-                      is_flinta=False, barrier_free_needed=False,
-                      mailbox_list_opt_in=False, soli_miete_wunsch=Decimal("0"))
-    session.add(incoming); session.flush()
+def test_create_links_outgoing_and_incoming_assignments(session, room, inspector):
+    from cartei_db.models.tenant_room_assignment import TenantRoomAssignment
+    out_a = TenantRoomAssignment(tenant_id=inspector.id, room_id=room.id,
+                                 moved_in=date(2025, 1, 1), moved_out=date(2026, 6, 30),
+                                 is_sublet=False)
+    in_a = TenantRoomAssignment(tenant_id=inspector.id, room_id=room.id,
+                                moved_in=date(2026, 7, 1), is_sublet=False)
+    session.add_all([out_a, in_a]); session.flush()
     u = Uebergabe(room_id=room.id, conducted_by_id=inspector.id,
-                  conducted_at=datetime(2026, 10, 7, 12, 0, tzinfo=timezone.utc),
-                  incoming_tenant_id=incoming.id)
+                  conducted_at=datetime(2026, 7, 1, 12, 0, tzinfo=timezone.utc),
+                  outgoing_assignment_id=out_a.id, incoming_assignment_id=in_a.id)
     session.add(u); session.flush()
-    assert u.incoming_tenant_id == incoming.id
+    assert u.outgoing_assignment_id == out_a.id
+    assert u.incoming_assignment_id == in_a.id
