@@ -43,12 +43,20 @@ AUDIT_FUNCTION_SQL = """
 CREATE OR REPLACE FUNCTION audit_history() RETURNS trigger AS $$
 DECLARE
     snap jsonb;
+    new_snap jsonb;
     col  text;
 BEGIN
     snap := to_jsonb(OLD);
+    IF TG_OP = 'UPDATE' THEN new_snap := to_jsonb(NEW); END IF;
     FOREACH col IN ARRAY coalesce(TG_ARGV, '{}') LOOP
         snap := snap - col;
+        new_snap := new_snap - col;
     END LOOP;
+    -- An UPDATE that only touches excluded columns (e.g. tenant.email_refreshed_at,
+    -- bumped on every email cache refresh) is not history-worthy.
+    IF TG_OP = 'UPDATE' AND snap = new_snap THEN
+        RETURN NULL;
+    END IF;
     INSERT INTO entity_history(entity_type, entity_id, snapshot, changed_at, changed_by, change_source)
     VALUES (
         TG_TABLE_NAME, OLD.id, snap, now(),
