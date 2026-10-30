@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from cartei_db.models.tenant import Tenant
 from cartei_db.base import EntityHistory
@@ -58,6 +58,24 @@ def test_is_flinta_excluded_from_history(session):
         entity_type="tenant", entity_id=t.id
     ).one()
     assert "is_flinta" not in history.snapshot
+
+
+def test_email_refresh_alone_writes_no_history(session):
+    # The email cache timestamp is bumped on every refresh; only real changes
+    # (here: the address itself) may produce an entity_history row.
+    t = _tenant()
+    session.add(t)
+    session.flush()
+    t.email_refreshed_at = datetime.now(timezone.utc)
+    session.flush()
+    assert session.query(EntityHistory).filter_by(entity_type="tenant", entity_id=t.id).count() == 0
+
+    t.email = "fresh@example.com"
+    t.email_refreshed_at = datetime.now(timezone.utc)
+    session.flush()
+    history = session.query(EntityHistory).filter_by(entity_type="tenant", entity_id=t.id).one()
+    assert history.snapshot["email"] == "anna@example.com"
+    assert "email_refreshed_at" not in history.snapshot
 
 
 def test_soli_miete_wunsch_can_be_negative(session):

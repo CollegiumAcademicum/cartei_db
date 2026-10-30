@@ -11,12 +11,18 @@ from cartei_db.base import Base, Historized
 
 class Tenant(Historized, Base):
     __tablename__ = "tenant"
-    __history_exclude__ = {"is_flinta"}
+    __history_exclude__ = {"is_flinta", "email_refreshed_at"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     first_name: Mapped[str] = mapped_column(String, nullable=False)
     last_name: Mapped[str] = mapped_column(String, nullable=False)
+    # Last known address. For a tenant with an intranet account FreeIPA `mail` is the
+    # source of truth and this column is a read-through cache (refreshed at login and
+    # before every send, written through on edit); for a tenant without one (before
+    # provisioning, after the account is deleted) it is the only copy.
     email: Mapped[str] = mapped_column(String, nullable=False)
+    # When `email` was last confirmed against FreeIPA; NULL = never.
+    email_refreshed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     # LDAP account link — NULL for tenants added manually by Mietverwaltung before
     # an intranet account exists. unique() still permits many NULLs (each distinct).
     intranet_username: Mapped[Optional[str]] = mapped_column(String, nullable=True, unique=True)
