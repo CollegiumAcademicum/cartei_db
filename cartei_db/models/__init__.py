@@ -22,6 +22,7 @@ from cartei_db.models.room_damage import RoomDamage
 from cartei_db.models.wg_damage import WGDamage
 from cartei_db.models.user_session import UserSession
 from cartei_db.models.impersonation_event import ImpersonationEvent
+from cartei_db.models.confidentiality_clearance_event import ConfidentialityClearanceEvent
 from cartei_db.models.uebergabe import Uebergabe
 
 __all__ = [
@@ -32,5 +33,6 @@ __all__ = [
     "MietvertragDocument", "MietbedingungenDocument", "WohnungsgeberbescheinigungDocument",
     "SepaLastschriftmandatDocument", "BescheidAusbildungsstelleDocument",
     "SelbstverpflichtungEngagementDocument",
-    "RoomDamage", "WGDamage", "UserSession", "ImpersonationEvent", "Uebergabe",
+    "RoomDamage", "WGDamage", "UserSession", "ImpersonationEvent",
+    "ConfidentialityClearanceEvent", "Uebergabe",
 ]
