@@ -94,3 +94,9 @@ class WGDamageLine(str, Enum):
 class ImpersonationAction(str, Enum):
     START = "START"
     STOP = "STOP"
+
+
+class ConfidentialityClearanceAction(str, Enum):
+    GRANT = "GRANT"
+    REGRANT = "REGRANT"
+    REVOKE = "REVOKE"
