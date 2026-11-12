@@ -34,6 +34,9 @@ def engine():
         from cartei_db.clearance_triggers import clearance_event_immutable_sql
         for stmt in clearance_event_immutable_sql():
             conn.execute(text(stmt))
+        from cartei_db.ag_membership_triggers import ag_membership_event_immutable_sql
+        for stmt in ag_membership_event_immutable_sql():
+            conn.execute(text(stmt))
     yield eng
     Base.metadata.drop_all(eng)
     with eng.begin() as conn:
@@ -41,6 +44,7 @@ def engine():
         conn.execute(text("DROP FUNCTION IF EXISTS damage_no_delete() CASCADE"))
         conn.execute(text("DROP FUNCTION IF EXISTS impersonation_event_immutable() CASCADE"))
         conn.execute(text("DROP FUNCTION IF EXISTS confidentiality_clearance_event_immutable() CASCADE"))
+        conn.execute(text("DROP FUNCTION IF EXISTS ag_membership_event_immutable() CASCADE"))
     eng.dispose()
 
 
