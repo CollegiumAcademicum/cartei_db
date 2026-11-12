@@ -1,8 +1,9 @@
-name: Build and push Docker image
+name: Test, build and push Docker image
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 # Back-to-back merges must not race on :latest — a newer push cancels the older build.
@@ -11,7 +12,41 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: cartei
+          POSTGRES_PASSWORD: cartei
+          POSTGRES_DB: cartei
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U cartei" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://cartei:cartei@localhost:5432/cartei
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+
+      # Newest migration must apply, roll back and re-apply; models must match
+      # the migrations. (A full downgrade to base fails on an old unnamed FK.)
+      - name: Migrations
+        run: |
+          uv run alembic upgrade head
+          uv run alembic downgrade -1
+          uv run alembic upgrade head
+          uv run alembic check
+
+      - name: Run tests
+        run: uv run --extra dev pytest -q
+
+  # Only tested migrations reach :latest (pod0 applies them on the next update).
   build:
+    needs: test
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -27,9 +62,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Short commit SHA
+        id: sha
+        run: echo "short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      # :<sha> stays pullable to pin or roll back a migration image.
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: ghcr.io/collegiumacademicum/cartei-db:latest
+          tags: |
+            ghcr.io/collegiumacademicum/cartei-db:latest
+            ghcr.io/collegiumacademicum/cartei-db:${{ steps.sha.outputs.short }}
