@@ -41,7 +41,7 @@ jobs:
           uv run alembic check
 
       - name: Run tests
-        run: uv run pytest -q
+        run: uv run --extra dev pytest -q
 
   # Only tested migrations reach :latest (pod0 applies them on the next update).
   build:
