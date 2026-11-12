@@ -24,6 +24,7 @@ from cartei_db.models.user_session import UserSession
 from cartei_db.models.impersonation_event import ImpersonationEvent
 from cartei_db.models.confidentiality_clearance_event import ConfidentialityClearanceEvent
 from cartei_db.models.uebergabe import Uebergabe
+from cartei_db.models.ag_membership_event import AGMembershipEvent
 
 __all__ = [
     "Building", "WG", "Room", "Tenant", "TenantRoomAssignment",
@@ -34,5 +35,5 @@ __all__ = [
     "SepaLastschriftmandatDocument", "BescheidAusbildungsstelleDocument",
     "SelbstverpflichtungEngagementDocument",
     "RoomDamage", "WGDamage", "UserSession", "ImpersonationEvent",
-    "ConfidentialityClearanceEvent", "Uebergabe",
+    "ConfidentialityClearanceEvent", "Uebergabe", "AGMembershipEvent",
 ]

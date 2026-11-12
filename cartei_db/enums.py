@@ -100,3 +100,8 @@ class ConfidentialityClearanceAction(str, Enum):
     GRANT = "GRANT"
     REGRANT = "REGRANT"
     REVOKE = "REVOKE"
+
+
+class AGMembershipAction(str, Enum):
+    JOIN = "JOIN"
+    LEAVE = "LEAVE"
