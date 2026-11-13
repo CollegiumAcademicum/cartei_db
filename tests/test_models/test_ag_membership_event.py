@@ -22,7 +22,7 @@ def event(session):
     session.flush()
     ev = AGMembershipEvent(
         tenant_id=t.id, uid="ltest_ame", group_cn="ag.garten",
-        action=AGMembershipAction.JOIN,
+        action=AGMembershipAction.JOIN, actor_username="ltest_ame",
         created_at=datetime(2026, 11, 13, 9, 0, tzinfo=timezone.utc),
     )
     session.add(ev)
@@ -46,3 +46,15 @@ def test_delete_is_rejected(session, event):
     session.delete(event)
     with pytest.raises(DBAPIError):
         session.flush()
+
+
+def test_event_without_tenant(session):
+    ev = AGMembershipEvent(
+        tenant_id=None, uid="ghost", group_cn="ag.garten",
+        action=AGMembershipAction.LEAVE, actor_username="lea",
+        created_at=datetime(2026, 11, 13, tzinfo=timezone.utc),
+    )
+    session.add(ev)
+    session.flush()
+    fetched = session.get(AGMembershipEvent, ev.id)
+    assert (fetched.tenant_id, fetched.actor_username) == (None, "lea")
