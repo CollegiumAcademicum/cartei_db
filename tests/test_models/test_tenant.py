@@ -83,3 +83,22 @@ def test_soli_miete_wunsch_can_be_negative(session):
     session.add(t)
     session.flush()
     assert session.get(Tenant, t.id).soli_miete_wunsch == Decimal("-15.00")
+
+
+def test_locale_defaults_to_null(session):
+    t = _tenant()
+    session.add(t)
+    session.flush()
+    assert t.locale is None
+
+
+def test_locale_change_writes_history(session):
+    t = _tenant(locale="de")
+    session.add(t)
+    session.flush()
+    t.locale = "en"
+    session.flush()
+    history = session.query(EntityHistory).filter_by(
+        entity_type="tenant", entity_id=t.id
+    ).one()
+    assert history.snapshot["locale"] == "de"

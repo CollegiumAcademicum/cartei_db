@@ -29,6 +29,9 @@ class Tenant(Historized, Base):
     intranet_uuid: Mapped[Optional[uuid.UUID]] = mapped_column(Uuid, nullable=True, unique=True)
     preferred_name: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     pronouns: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    # Cache of the Keycloak `locale` claim (Keycloak/LDAP is the SSOT), refreshed at
+    # login. Mietverwaltung may seed it by hand; the next sync overwrites it. NULL = unknown.
+    locale: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     date_of_birth: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     phone: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     is_flinta: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
