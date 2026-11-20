@@ -2,10 +2,10 @@ from datetime import date
 from typing import Optional
 from sqlalchemy import Boolean, Date, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
-from cartei_db.base import Base
+from cartei_db.base import Base, Historized
 
 
-class TenantRoomAssignment(Base):
+class TenantRoomAssignment(Historized, Base):
     __tablename__ = "tenant_room_assignment"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

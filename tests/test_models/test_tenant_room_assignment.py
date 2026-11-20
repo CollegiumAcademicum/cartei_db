@@ -97,3 +97,17 @@ def test_sublet_and_key_dates_on_assignment(session, tenant, room):
     assert got.sublet_of_tenant_id == primary.id
     assert got.key_received == date(2024, 1, 2)
     assert got.key_returned == date(2024, 6, 30)
+
+
+def test_assignment_update_writes_history_incl_iban(session, tenant, room):
+    from cartei_db.base import EntityHistory
+    a = TenantRoomAssignment(tenant_id=tenant.id, room_id=room.id, moved_in=date(2026, 1, 1),
+                             deposit_iban="DE00 1111")
+    session.add(a)
+    session.flush()
+    a.moved_out = date(2026, 6, 30)
+    a.deposit_iban = "DE00 2222"
+    session.flush()
+    h = session.query(EntityHistory).filter_by(entity_type="tenant_room_assignment", entity_id=a.id).one()
+    assert h.snapshot["moved_out"] is None
+    assert h.snapshot["deposit_iban"] == "DE00 1111"  # IBAN changes are logged (CArtei#115)
